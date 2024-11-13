@@ -18,7 +18,16 @@ export default function SchedulePage() {
   };
 
   console.log('Current classes:', classes);
-
+  const departmentsData = [
+    { id: 'cs', name: 'Computer Science' },
+    { id: 'math', name: 'Mathematics' },
+    { id: 'phys', name: 'Physics' }
+  ]
+  const semestersData = [
+    { id: 'sem1', name: 'Semester 1' },
+    { id: 'sem2', name: 'Semester 2' },
+    { id: 'sem3', name: 'Semester 3' }
+  ]
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -56,16 +65,8 @@ export default function SchedulePage() {
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleAddClass}
-        departments={[
-          { id: 'cs', name: 'Computer Science' },
-          { id: 'math', name: 'Mathematics' },
-          { id: 'phys', name: 'Physics' }
-        ]}
-        semesters={[
-          { id: 'sem1', name: 'Semester 1' },
-          { id: 'sem2', name: 'Semester 2' },
-          { id: 'sem3', name: 'Semester 3' }
-        ]}
+        departments={departmentsData}
+        semesters={semestersData}
       />
     </div>
   );
