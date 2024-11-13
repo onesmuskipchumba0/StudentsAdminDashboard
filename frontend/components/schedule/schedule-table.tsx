@@ -15,9 +15,15 @@ const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
 export function ScheduleTable({ classes }: ScheduleTableProps) {
   const getClassForTimeSlot = (time: string, day: string) => {
-    return classes.find(
-      (cls) => cls.startTime === time && cls.day === day
-    );
+    return classes.find(cls => {
+      const timeIndex = timeSlots.indexOf(time);
+      const startTimeIndex = timeSlots.indexOf(cls.startTime);
+      const endTimeIndex = timeSlots.indexOf(cls.endTime);
+      
+      return cls.day === day && 
+             timeIndex >= startTimeIndex && 
+             timeIndex < endTimeIndex;
+    });
   };
 
   return (
@@ -37,15 +43,20 @@ export function ScheduleTable({ classes }: ScheduleTableProps) {
               <td className="font-medium">{time}</td>
               {daysOfWeek.map((day) => {
                 const classSession = getClassForTimeSlot(time, day);
+                const isFirstSlot = classSession?.startTime === time;
+
                 return (
                   <td key={`${day}-${time}`} className="p-2">
-                    {classSession && (
+                    {classSession && isFirstSlot && (
                       <div className="bg-primary/10 p-2 rounded-lg">
                         <div className="font-medium text-sm">
                           {classSession.subject}
                         </div>
                         <div className="text-xs text-gray-600">
                           {classSession.teacher} • {classSession.room}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {classSession.startTime} - {classSession.endTime}
                         </div>
                         <div className="text-xs text-gray-500">
                           {classSession.department} • {classSession.semester}

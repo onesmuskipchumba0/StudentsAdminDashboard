@@ -6,11 +6,12 @@ import type { Department, Semester } from '@/types/schedule';
 interface ScheduleModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit: (data: Omit<ScheduleClass, 'id'>) => void;
   departments: Department[];
   semesters: Semester[];
 }
 
-export function ScheduleModal({ isOpen, onClose, departments, semesters }: ScheduleModalProps) {
+export function ScheduleModal({ isOpen, onClose, onSubmit, departments, semesters }: ScheduleModalProps) {
   const [formData, setFormData] = useState({
     subject: '',
     teacher: '',
@@ -31,8 +32,16 @@ export function ScheduleModal({ isOpen, onClose, departments, semesters }: Sched
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Handle form submission here
-    console.log(formData);
+    onSubmit({
+      subject: formData.subject,
+      teacher: formData.teacher,
+      room: formData.room,
+      day: formData.day,
+      startTime: formData.startTime,
+      endTime: formData.endTime,
+      department: formData.department,
+      semester: formData.semester
+    });
     onClose();
     setFormData({
       subject: '',
@@ -67,6 +76,92 @@ export function ScheduleModal({ isOpen, onClose, departments, semesters }: Sched
                 placeholder="Enter subject name"
                 required
               />
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Teacher</span>
+              </label>
+              <input
+                type="text"
+                name="teacher"
+                value={formData.teacher}
+                onChange={handleChange}
+                className="input input-bordered"
+                placeholder="Enter teacher name"
+                required
+              />
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Room</span>
+              </label>
+              <input
+                type="text"
+                name="room"
+                value={formData.room}
+                onChange={handleChange}
+                className="input input-bordered"
+                placeholder="Enter room number"
+                required
+              />
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Day</span>
+              </label>
+              <select 
+                name="day"
+                value={formData.day}
+                onChange={handleChange}
+                className="select select-bordered" 
+                required
+              >
+                <option value="">Select day</option>
+                {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'].map((day) => (
+                  <option key={day} value={day}>{day}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">Start Time</span>
+              </label>
+              <select 
+                name="startTime"
+                value={formData.startTime}
+                onChange={handleChange}
+                className="select select-bordered" 
+                required
+              >
+                <option value="">Select start time</option>
+                {['8:00 AM', '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+                  '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'].map((time) => (
+                  <option key={time} value={time}>{time}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-control">
+              <label className="label">
+                <span className="label-text">End Time</span>
+              </label>
+              <select 
+                name="endTime"
+                value={formData.endTime}
+                onChange={handleChange}
+                className="select select-bordered" 
+                required
+              >
+                <option value="">Select end time</option>
+                {['9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+                  '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM', '6:00 PM'].map((time) => (
+                  <option key={time} value={time}>{time}</option>
+                ))}
+              </select>
             </div>
 
             <div className="form-control">
@@ -108,8 +203,6 @@ export function ScheduleModal({ isOpen, onClose, departments, semesters }: Sched
                 ))}
               </select>
             </div>
-
-            {/* Add other form fields similarly */}
           </div>
 
           <div className="modal-action">

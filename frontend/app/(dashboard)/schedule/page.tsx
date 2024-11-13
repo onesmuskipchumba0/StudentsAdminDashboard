@@ -1,11 +1,23 @@
 'use client';
 
+import { ScheduleModal, ScheduleTable } from '@/components/schedule';
 import { useState } from 'react';
-import { ScheduleTable, ScheduleModal } from '@/components/schedule';
 import { FaPlus, FaCalendarAlt } from 'react-icons/fa';
 
 export default function SchedulePage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [classes, setClasses] = useState<ScheduleClass[]>([]);
+
+  const handleAddClass = (classData: Omit<ScheduleClass, 'id'>) => {
+    const newClass: ScheduleClass = {
+      ...classData,
+      id: crypto.randomUUID()
+    };
+    setClasses(prev => [...prev, newClass]);
+    console.log('Added class:', newClass);
+  };
+
+  console.log('Current classes:', classes);
 
   return (
     <div className="p-6">
@@ -39,8 +51,22 @@ export default function SchedulePage() {
         </select>
       </div>
 
-      <ScheduleTable />
-      <ScheduleModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      <ScheduleTable classes={classes} />
+      <ScheduleModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={handleAddClass}
+        departments={[
+          { id: 'cs', name: 'Computer Science' },
+          { id: 'math', name: 'Mathematics' },
+          { id: 'phys', name: 'Physics' }
+        ]}
+        semesters={[
+          { id: 'sem1', name: 'Semester 1' },
+          { id: 'sem2', name: 'Semester 2' },
+          { id: 'sem3', name: 'Semester 3' }
+        ]}
+      />
     </div>
   );
 } 
