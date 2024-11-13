@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import Navbar from "@/components/Navbar";
-import SearchBar from "@/components/SearchBar";
 
 
 
@@ -16,7 +15,6 @@ export default function DashboardLayout({
       >
         <Navbar />
         <div className="flex-1">
-            <SearchBar />
             {children}
         </div>
       </body>
