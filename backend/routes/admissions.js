@@ -29,13 +29,28 @@ router.get('/:id', async (req, res) => {
 // Create new admission
 router.post('/', async (req, res) => {
   try {
+    // Check if email already exists
+    const existingAdmission = await Admission.findOne({ email: req.body.email });
+    if (existingAdmission) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+
+    // Check if studentId already exists
+    const existingStudentId = await Admission.findOne({ studentId: req.body.studentId });
+    if (existingStudentId) {
+      return res.status(400).json({ message: 'Student ID already exists' });
+    }
+
     const newAdmission = new Admission({
-      studentId: (await Admission.countDocuments()) + 1,
-      studentName: req.body.studentName,
+      studentId: req.body.studentId,
+      name: req.body.name,
       email: req.body.email,
       phone: req.body.phone,
+      course: req.body.course,
       department: req.body.department,
       semester: req.body.semester,
+      status: req.body.status || 'pending',
+      submittedAt: req.body.submittedAt || new Date(),
       previousSchool: req.body.previousSchool,
       gpa: req.body.gpa
     });
@@ -43,7 +58,17 @@ router.post('/', async (req, res) => {
     const savedAdmission = await newAdmission.save();
     res.status(201).json(savedAdmission);
   } catch (error) {
-    res.status(400).json({ message: 'Error creating admission', error });
+    // Log the full error for debugging
+    console.error('Admission creation error:', error);
+    
+    res.status(400).json({ 
+      message: 'Error creating admission', 
+      error: error.message,
+      details: error.errors ? Object.keys(error.errors).map(key => ({
+        field: key,
+        message: error.errors[key].message
+      })) : null
+    });
   }
 });
 

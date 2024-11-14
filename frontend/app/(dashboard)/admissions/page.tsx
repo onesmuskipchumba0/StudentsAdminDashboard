@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { AdmissionsList, AdmissionStats, AdmissionModal } from '../../../components/admissions';
 import { FaPlus, FaGraduationCap } from 'react-icons/fa';
+import axios from 'axios';
 
 // Dummy data for statistics
 const statsData = {
@@ -14,33 +15,10 @@ const statsData = {
 };
 
 // Dummy data for applications
-const dummyApplications = [
-  {
-    id: '1',
-    studentName: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '+1234567890',
-    department: 'Computer Science',
-    semester: 'Fall 2024',
-    status: 'pending',
-    submittedAt: '2024-03-15',
-    previousSchool: 'Lincoln High School',
-    gpa: '3.8',
-  },
-  {
-    id: '2',
-    studentName: 'Jane Smith',
-    email: 'jane.smith@example.com',
-    phone: '+1234567891',
-    department: 'Mathematics',
-    semester: 'Fall 2024',
-    status: 'approved',
-    submittedAt: '2024-03-14',
-    previousSchool: 'Washington High School',
-    gpa: '3.9',
-  },
-  // Add more dummy data as needed
-];
+const admissionData = async () => {
+  const response = await axios.get('http://localhost:5000/api/admissions');
+  return response.data;
+}
 
 export default function AdmissionsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -48,7 +26,7 @@ export default function AdmissionsPage() {
   const [searchQuery, setSearchQuery] = useState('');
 
   // Filter applications based on status and search query
-  const filteredApplications = dummyApplications.filter(app => {
+  const filteredApplications = admissionData.filter(app => {
     const matchStatus = filterStatus === 'all' || app.status === filterStatus;
     const matchSearch = app.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
                        app.email.toLowerCase().includes(searchQuery.toLowerCase());
