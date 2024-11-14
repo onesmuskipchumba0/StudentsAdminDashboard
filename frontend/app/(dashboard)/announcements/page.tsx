@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   AnnouncementList, 
   AnnouncementModal, 
@@ -9,40 +9,24 @@ import {
 import { FaPlus, FaBullhorn } from 'react-icons/fa';
 
 // Dummy announcements data
-const announcements = [
-  {
-    id: '1',
-    title: 'Mid-term Examination Schedule',
-    content: 'The mid-term examinations will be conducted from October 15th to October 25th. Please check your respective department notice boards for detailed schedules.',
-    category: 'academic',
-    priority: 'high',
-    author: 'Academic Office',
-    createdAt: '2024-03-15T10:00:00Z',
-    department: 'All Departments',
-    attachments: ['schedule.pdf'],
-    pinned: true
-  },
-  {
-    id: '2',
-    title: 'Campus Maintenance Notice',
-    content: 'The main library will be closed for maintenance work this weekend (March 20-21). Online resources will remain accessible.',
-    category: 'facility',
-    priority: 'medium',
-    author: 'Facility Management',
-    createdAt: '2024-03-14T15:30:00Z',
-    department: 'All Departments',
-    attachments: [],
-    pinned: false
-  },
-  // Add more announcements...
-];
+
 
 export default function AnnouncementsPage() {
+  const [announcements, setAnnouncements] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filterCategory, setFilterCategory] = useState('all');
   const [filterPriority, setFilterPriority] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
+  const fetchAnnouncements = async () => {
+    const response = await fetch('http://localhost:5000/api/announcements');
+    const data = await response.json();
+    setAnnouncements(data);
+    console.log(data);
+  }
+  useEffect(() => {
+    fetchAnnouncements();
+  }, []);
   // Filter announcements based on category, priority, and search query
   const filteredAnnouncements = announcements.filter(announcement => {
     const matchCategory = filterCategory === 'all' || announcement.category === filterCategory;

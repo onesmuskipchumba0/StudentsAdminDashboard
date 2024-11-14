@@ -30,12 +30,12 @@ export const AttendanceRow: React.FC<AttendanceRowProps> = ({
           <div className="h-10 w-10 flex-shrink-0">
             <img
               className="h-10 w-10 rounded-full"
-              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(record.studentName)}&background=random`}
+              src={`https://ui-avatars.com/api/?name=${encodeURIComponent(record.name)}&background=random`}
               alt=""
             />
           </div>
           <div className="ml-4">
-            <div className="text-sm font-medium text-gray-900">{record.studentName}</div>
+            <div className="text-sm font-medium text-gray-900">{record.name}</div>
             <div className="text-sm text-gray-500">{record.studentId}</div>
           </div>
         </div>
@@ -44,7 +44,7 @@ export const AttendanceRow: React.FC<AttendanceRowProps> = ({
         {record.course}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-        {record.date}
+        {new Date(record.enrollmentDate).toLocaleDateString()}
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusBadgeColor(record.status)}`}>

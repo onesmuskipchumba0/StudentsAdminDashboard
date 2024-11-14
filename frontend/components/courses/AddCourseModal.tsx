@@ -4,7 +4,7 @@ import { Course } from '../../types/course'
 interface AddCourseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (courseData: Omit<Course, 'id' | 'progress' | 'enrolledStudents'>) => void;
+  onSubmit: (courseData: Omit<Course, '_id' | 'progress' | 'enrolledStudents'>) => void;
 }
 
 export const AddCourseModal: React.FC<AddCourseModalProps> = ({
@@ -16,10 +16,10 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
     name: '',
     description: '',
     duration: '',
-    status: 'Upcoming' as 'Upcoming' | 'Active' | 'Completed',
+    status: 'Upcoming' as 'Active' | 'Upcoming',
     instructor: '',
     startDate: '',
-    maxStudents: '',
+    maxStudents: 0,
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -32,7 +32,7 @@ export const AddCourseModal: React.FC<AddCourseModalProps> = ({
       status: 'Upcoming',
       instructor: '',
       startDate: '',
-      maxStudents: '',
+      maxStudents: 0,
     })
     onClose()
   }

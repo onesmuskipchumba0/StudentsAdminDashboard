@@ -38,9 +38,11 @@ export function CalendarView({ events }: CalendarViewProps) {
 
   const getEventForDate = (date: number) => {
     const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-    return events.filter(event => 
-      dateStr >= event.startDate && dateStr <= event.endDate
-    );
+    return events.filter(event => {
+      const eventStart = new Date(event.startDate).toISOString().split('T')[0];
+      const eventEnd = new Date(event.endDate).toISOString().split('T')[0];
+      return dateStr >= eventStart && dateStr <= eventEnd;
+    });
   };
 
   const nextMonth = () => {

@@ -1,12 +1,14 @@
 export interface Course {
-  id: number;
+  _id: string;
   name: string;
   description: string;
   duration: string;
-  status: 'Active' | 'Upcoming' | 'Completed';
+  status: 'Active' | 'Upcoming';
   instructor: string;
   startDate: string;
-  maxStudents: string;
+  maxStudents: number;
   enrolledStudents: number;
   progress: number;
+  createdAt?: string;
+  updatedAt?: string;
 } 

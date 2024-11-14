@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { AdmissionsList, AdmissionStats, AdmissionModal } from '../../../components/admissions';
 import { FaPlus, FaGraduationCap } from 'react-icons/fa';
-import axios from 'axios';
+
 
 // Dummy data for statistics
 const statsData = {
@@ -15,16 +15,22 @@ const statsData = {
 };
 
 // Dummy data for applications
-const admissionData = async () => {
-  const response = await axios.get('http://localhost:5000/api/admissions');
-  return response.data;
-}
+
 
 export default function AdmissionsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-
+  const [admissionData, setAdmissionData] = useState([]);
+  const fetchAdmissionData = async () => {
+    const response = await fetch('http://localhost:5000/api/admissions');
+    const data = await response.json();
+    console.log(data);
+    setAdmissionData(data);
+  }
+  useEffect(() => {
+    fetchAdmissionData();
+  }, []);
   // Filter applications based on status and search query
   const filteredApplications = admissionData.filter(app => {
     const matchStatus = filterStatus === 'all' || app.status === filterStatus;
