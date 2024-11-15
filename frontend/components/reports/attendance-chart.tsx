@@ -1,3 +1,4 @@
+import React from 'react';
 import {
   AreaChart,
   Area,
@@ -6,8 +7,7 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
-  ReferenceLine
+  ResponsiveContainer
 } from 'recharts';
 
 interface AttendanceData {
@@ -24,59 +24,20 @@ interface AttendanceChartProps {
 }
 
 export function AttendanceChart({ data }: AttendanceChartProps) {
-  // Aggregate data by month
-  const aggregatedData = data.reduce((acc, curr) => {
-    if (!acc[curr.month]) {
-      acc[curr.month] = {
-        month: curr.month,
-        attendance: 0,
-        totalStudents: 0,
-        presentStudents: 0,
-        departments: new Set()
-      };
-    }
-    acc[curr.month].totalStudents += curr.totalStudents;
-    acc[curr.month].presentStudents += curr.presentStudents;
-    acc[curr.month].departments.add(curr.department);
-    acc[curr.month].attendance = Math.round(
-      (acc[curr.month].presentStudents / acc[curr.month].totalStudents) * 100
-    );
-    return acc;
-  }, {} as Record<string, {
-    month: string;
-    attendance: number;
-    totalStudents: number;
-    presentStudents: number;
-    departments: Set<string>;
-  }>);
-
-  const chartData = Object.values(aggregatedData)
-    .map(data => ({
-      ...data,
-      departmentCount: data.departments.size
-    }))
-    .sort((a, b) => {
-      const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      return months.indexOf(a.month) - months.indexOf(b.month);
-    });
-
-  // Calculate statistics
-  const averageAttendance = Math.round(
-    chartData.reduce((sum, item) => sum + item.attendance, 0) / chartData.length
-  );
+  // Calculate attendance percentage
+  const chartData = data.map(item => ({
+    ...item,
+    attendanceRate: ((item.presentStudents / item.totalStudents) * 100).toFixed(1)
+  }));
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      const data = payload[0].payload;
       return (
         <div className="bg-base-100 p-4 rounded-lg shadow border">
-          <h3 className="font-bold mb-2">{label}</h3>
-          <div className="space-y-1">
-            <p>Attendance: {data.attendance}%</p>
-            <p>Present Students: {data.presentStudents}</p>
-            <p>Total Students: {data.totalStudents}</p>
-            <p>Departments: {data.departmentCount}</p>
-          </div>
+          <p className="font-bold">{label}</p>
+          <p>Attendance Rate: {payload[0].value}%</p>
+          <p>Present: {payload[0].payload.presentStudents}</p>
+          <p>Total: {payload[0].payload.totalStudents}</p>
         </div>
       );
     }
@@ -88,7 +49,7 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart
           data={chartData}
-          margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+          margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis 
@@ -96,27 +57,21 @@ export function AttendanceChart({ data }: AttendanceChartProps) {
             label={{ value: 'Month', position: 'insideBottom', offset: -5 }}
           />
           <YAxis
-            domain={[0, 100]}
             label={{ 
-              value: 'Attendance (%)', 
+              value: 'Attendance Rate (%)', 
               angle: -90, 
-              position: 'insideLeft' 
+              position: 'insideLeft',
+              offset: -5
             }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
-          <ReferenceLine 
-            y={averageAttendance} 
-            label={`Average: ${averageAttendance}%`} 
-            stroke="#ff7300" 
-            strokeDasharray="3 3" 
-          />
           <Area
             type="monotone"
-            dataKey="attendance"
+            dataKey="attendanceRate"
             name="Attendance Rate"
-            stroke="#8884d8"
-            fill="#8884d8"
+            stroke="#82ca9d"
+            fill="#82ca9d"
             fillOpacity={0.3}
           />
         </AreaChart>
