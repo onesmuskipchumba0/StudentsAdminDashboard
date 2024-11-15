@@ -213,7 +213,6 @@ A comprehensive set of components for managing students and academic events in a
 - Message scheduling
 - Read receipts and notifications
 ![Messages](screenshots/messages/1.png)
-![Messages](screenshots/messages/2.png)
 
 ### Reports & Analytics
 - Customizable report templates
