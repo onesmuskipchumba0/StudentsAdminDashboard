@@ -1,41 +1,81 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { AdmissionsList, AdmissionStats, AdmissionModal } from '../../../components/admissions';
+import { AdmissionsList, AdmissionStats, AdmissionModal } from '@/components/admissions';
 import { FaPlus, FaGraduationCap } from 'react-icons/fa';
+import { toast } from 'react-hot-toast';
 
-
-// Dummy data for statistics
-const statsData = {
-  totalApplications: 150,
-  pendingReview: 45,
-  approved: 85,
-  rejected: 20,
-  thisWeek: 12,
-};
-
-// Dummy data for applications
-
+interface AdmissionData {
+  _id: string;
+  studentId: number;
+  name: string;
+  email: string;
+  phone: string;
+  department: string;
+  semester: string;
+  status: 'pending' | 'approved' | 'rejected';
+  submittedAt: string;
+  previousSchool: string;
+  gpa: string;
+}
 
 export default function AdmissionsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [admissionData, setAdmissionData] = useState([]);
+  const [admissionData, setAdmissionData] = useState<AdmissionData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalApplications: 0,
+    pendingReview: 0,
+    approved: 0,
+    rejected: 0,
+    thisWeek: 0,
+  });
+
   const fetchAdmissionData = async () => {
-    const response = await fetch('http://localhost:5000/api/admissions');
-    const data = await response.json();
-    console.log(data);
-    setAdmissionData(data);
-  }
+    try {
+      setLoading(true);
+      const response = await fetch('http://localhost:5000/api/admissions');
+      const data = await response.json();
+      setAdmissionData(data);
+
+      // Calculate stats
+      const totalApplications = data.length;
+      const pendingReview = data.filter(app => app.status === 'pending').length;
+      const approved = data.filter(app => app.status === 'approved').length;
+      const rejected = data.filter(app => app.status === 'rejected').length;
+      
+      // Calculate applications from this week
+      const oneWeekAgo = new Date();
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const thisWeek = data.filter(app => new Date(app.submittedAt) > oneWeekAgo).length;
+
+      setStats({
+        totalApplications,
+        pendingReview,
+        approved,
+        rejected,
+        thisWeek,
+      });
+    } catch (error) {
+      console.error('Error fetching admissions:', error);
+      toast.error('Failed to fetch admissions data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchAdmissionData();
   }, []);
+
   // Filter applications based on status and search query
   const filteredApplications = admissionData.filter(app => {
     const matchStatus = filterStatus === 'all' || app.status === filterStatus;
-    const matchSearch = app.studentName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                       app.email.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchSearch = 
+      app.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      app.email.toLowerCase().includes(searchQuery.toLowerCase());
     return matchStatus && matchSearch;
   });
 
@@ -55,7 +95,7 @@ export default function AdmissionsPage() {
       </div>
 
       {/* Statistics Cards */}
-      <AdmissionStats stats={statsData} />
+      <AdmissionStats stats={stats} />
 
       {/* Filters and Search */}
       <div className="flex gap-4 my-6">
@@ -81,7 +121,13 @@ export default function AdmissionsPage() {
       </div>
 
       {/* Applications List */}
-      <AdmissionsList applications={filteredApplications} />
+      {loading ? (
+        <div className="flex justify-center items-center h-64">
+          <div className="loading loading-spinner loading-lg"></div>
+        </div>
+      ) : (
+        <AdmissionsList applications={filteredApplications} />
+      )}
       
       {/* New Application Modal */}
       <AdmissionModal 

@@ -15,6 +15,24 @@ interface AdmissionsListProps {
   applications: Application[];
 }
 
+interface Application {
+  _id: string;
+  studentId: number;
+  name: string;
+  email: string;
+  phone: string;
+  department: string;
+  semester: string;
+  status: 'pending' | 'approved' | 'rejected';
+  submittedAt: string;
+  previousSchool: string;
+  gpa: string;
+}
+
+interface AdmissionsListProps {
+  applications: Application[];
+}
+
 export function AdmissionsList({ applications }: AdmissionsListProps) {
   const getStatusBadgeClass = (status: string) => {
     switch (status) {
@@ -44,8 +62,8 @@ export function AdmissionsList({ applications }: AdmissionsListProps) {
         </thead>
         <tbody>
           {applications.map((app) => (
-            <tr key={app.id}>
-              <td className="font-medium">{app.studentName}</td>
+            <tr key={app._id}>
+              <td className="font-medium">{app.name}</td>
               <td>
                 <div className="text-sm">{app.email}</div>
                 <div className="text-xs text-gray-500">{app.phone}</div>
