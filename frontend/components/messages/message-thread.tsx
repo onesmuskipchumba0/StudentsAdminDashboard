@@ -1,6 +1,9 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
+import { useSocket } from '@/contexts/SocketContext';
+import { useUser } from '@/contexts/UserContext';
+import { toast } from 'react-hot-toast';
 import Image from 'next/image';
 import { FaPaperPlane, FaPaperclip } from 'react-icons/fa';
 
@@ -14,7 +17,9 @@ interface Message {
 
 interface MessageThreadProps {
   conversation: {
+    id: string;
     recipient: {
+      id: string;
       name: string;
       avatar: string;
       role: string;
@@ -24,28 +29,71 @@ interface MessageThreadProps {
   messages: Message[];
 }
 
-export function MessageThread({ conversation, messages }: MessageThreadProps) {
+export function MessageThread({ conversation, messages: initialMessages }: MessageThreadProps) {
+  const [messages, setMessages] = useState(initialMessages);
+  const [newMessage, setNewMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const { socket } = useSocket();
+  const { user } = useUser();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const currentUserId = 'current-user'; // This would come from auth context
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on('new_message', (data) => {
+      if (data.conversationId === conversation.id) {
+        setMessages(prev => [...prev, data.message]);
+        scrollToBottom();
+      }
+    });
+
+    socket.on('message_sent', (message) => {
+      setMessages(prev => [...prev, message]);
+      setSending(false);
+      setNewMessage('');
+      scrollToBottom();
+    });
+
+    socket.on('message_error', (error) => {
+      toast.error(error);
+      setSending(false);
+    });
+
+    return () => {
+      socket.off('new_message');
+      socket.off('message_sent');
+      socket.off('message_error');
+    };
+  }, [socket, conversation.id]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !socket || sending || !user) return;
 
-  const formatMessageTime = (timestamp: string) => {
-    return new Date(timestamp).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit'
+    setSending(true);
+    socket.emit('send_message', {
+      conversationId: conversation.id,
+      recipientId: conversation.recipient.id,
+      content: newMessage.trim()
     });
   };
 
+  const formatMessageTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleTimeString([], { 
+      hour: '2-digit', 
+      minute: '2-digit' 
+    });
+  };
+
+  if (!user) return null;
+
   return (
     <div className="flex flex-col h-full">
-      {/* Header */}
+      {/* Conversation Header */}
       <div className="p-4 bg-base-100 border-b">
         <div className="flex items-center gap-3">
           <div className="avatar">
@@ -59,7 +107,7 @@ export function MessageThread({ conversation, messages }: MessageThreadProps) {
             </div>
           </div>
           <div>
-            <h2 className="font-medium">{conversation.recipient.name}</h2>
+            <h3 className="font-medium">{conversation.recipient.name}</h3>
             <p className="text-sm text-gray-500">
               {conversation.recipient.role} • {conversation.recipient.department}
             </p>
@@ -73,12 +121,12 @@ export function MessageThread({ conversation, messages }: MessageThreadProps) {
           <div
             key={message.id}
             className={`flex ${
-              message.senderId === currentUserId ? 'justify-end' : 'justify-start'
+              message.senderId === user.id ? 'justify-end' : 'justify-start'
             }`}
           >
             <div
               className={`max-w-[70%] rounded-lg p-3 ${
-                message.senderId === currentUserId
+                message.senderId === user.id
                   ? 'bg-primary text-primary-content'
                   : 'bg-base-100'
               }`}
@@ -95,23 +143,32 @@ export function MessageThread({ conversation, messages }: MessageThreadProps) {
 
       {/* Message Input */}
       <div className="p-4 bg-base-100 border-t">
-        <form className="flex gap-2">
+        <form className="flex gap-2" onSubmit={handleSubmit}>
           <button
             type="button"
             className="btn btn-circle btn-ghost"
+            disabled={sending}
           >
             <FaPaperclip />
           </button>
           <input
             type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
             className="input input-bordered flex-1"
+            disabled={sending}
           />
           <button
             type="submit"
             className="btn btn-primary btn-circle"
+            disabled={sending || !newMessage.trim()}
           >
-            <FaPaperPlane />
+            {sending ? (
+              <span className="loading loading-spinner loading-sm" />
+            ) : (
+              <FaPaperPlane />
+            )}
           </button>
         </form>
       </div>

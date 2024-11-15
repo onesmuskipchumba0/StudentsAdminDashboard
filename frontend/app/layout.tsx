@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { Toaster } from 'react-hot-toast';
+import { UserProvider } from '@/contexts/UserContext';
+import { SocketProvider } from '@/contexts/SocketContext';
 
 
 const geistSans = localFont({
@@ -30,8 +32,11 @@ export default function RootLayout({
       <body
         className={`flex flex-row min-h-screen ${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-  
-        {children}
+        <UserProvider>
+          <SocketProvider>
+            {children}
+          </SocketProvider>
+        </UserProvider>
         <Toaster position="top-right" />
       </body>
     </html>
