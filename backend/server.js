@@ -8,6 +8,7 @@ import feesRouter from "./routes/fees.js";
 import announcementsRouter from "./routes/announcements.js";
 import analyticsRouter from "./routes/analytics.js";
 import documentsRouter from "./routes/documents.js";
+import gradesRouter from './routes/grades.js';
 import cors from "cors";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
@@ -32,6 +33,7 @@ app.use("/api/fees", feesRouter);
 app.use("/api/announcements", announcementsRouter);
 app.use("/api/analytics", analyticsRouter);
 app.use("/api/documents", documentsRouter);
+app.use('/api/grades', gradesRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
