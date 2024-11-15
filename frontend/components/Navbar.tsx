@@ -1,6 +1,6 @@
 import React from 'react'
 import Link from 'next/link'
-import { AiOutlineInfoCircle, AiOutlineMail } from 'react-icons/ai'
+import { AiOutlineGithub, AiOutlineInfoCircle, AiOutlineMail } from 'react-icons/ai'
 import { AiOutlineHome } from 'react-icons/ai'
 import { 
     AiOutlineUser, 
@@ -136,6 +136,12 @@ export default function Navbar() {
                 <Link href="/settings" className="flex items-center gap-2">
                     <AiOutlineSetting className="w-5 h-5" />
                     Settings
+                </Link>
+            </li>
+            <li>
+                <Link href="https://github.com/onesmuskipchumba0" className="flex items-center gap-2">
+                    <AiOutlineGithub className="w-5 h-5" />
+                    Contact Developer
                 </Link>
             </li>
         </ul>
