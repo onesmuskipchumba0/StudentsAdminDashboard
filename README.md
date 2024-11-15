@@ -306,28 +306,6 @@ A comprehensive set of components for managing students and academic events in a
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
-## 👥 Support
-
-For support, email support@eduadminpro.com or join our Slack channel.
-
-## 🙏 Acknowledgments
-
-- Next.js team for the amazing framework
-- Tailwind CSS for the utility-first CSS framework
-- DaisyUI for the component library
-- All contributors who have helped shape this project
-
-## 📸 More Screenshots
-
-### User Management
-![User Management](screenshots/users/user-management.png)
-
-### Reports Dashboard
-![Reports](screenshots/reports/reports-dashboard.png)
-
-### Settings Panel
-![Settings](screenshots/settings/settings-panel.png)
-
 ## 🔄 Updates and Roadmap
 
 ### Recent Updates
@@ -335,6 +313,13 @@ For support, email support@eduadminpro.com or join our Slack channel.
 - Improved dashboard performance
 - Enhanced mobile responsiveness
 - Added new report templates
+
+## 🙏 Acknowledgments
+
+- Next.js team for the amazing framework
+- Tailwind CSS for the utility-first CSS framework
+- DaisyUI for the component library
+- All contributors who have helped shape this project
 
 ## 🤝 Support
 
