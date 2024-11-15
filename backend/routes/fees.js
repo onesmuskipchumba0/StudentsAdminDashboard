@@ -37,11 +37,46 @@ router.get("/:id", async (req, res) => {
 // Create new payment
 router.post("/", async (req, res) => {
   try {
-    const newPayment = new Payment(req.body);
-    const savedPayment = await newPayment.save();
-    res.status(201).json(savedPayment);
+    const {
+      studentName,
+      studentId,
+      amount,
+      type,
+      status,
+      date,
+      paymentMethod,
+      semester,
+      notes
+    } = req.body;
+
+    // Validate required fields
+    if (!studentName || !studentId || !amount || !type || !status || !date || !paymentMethod || !semester) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    // Create new payment
+    const payment = new Payment({
+      studentName,
+      studentId,
+      amount,
+      type,
+      status,
+      date,
+      paymentMethod,
+      semester,
+      notes
+    });
+
+    // Save to database
+    await payment.save();
+
+    res.status(201).json(payment);
   } catch (error) {
-    res.status(400).json({ message: "Error creating payment", error: error.message });
+    console.error('Payment creation error:', error);
+    res.status(500).json({ 
+      message: "Error creating payment", 
+      error: error.message 
+    });
   }
 });
 
@@ -97,6 +132,51 @@ router.get("/semester/:semester", async (req, res) => {
     res.status(200).json(payments);
   } catch (error) {
     res.status(500).json({ message: "Error fetching semester payments", error: error.message });
+  }
+});
+
+// Get payment statistics
+router.get("/stats", async (req, res) => {
+  try {
+    const [totalCollected, pendingPayments, overduePayments] = await Promise.all([
+      Payment.aggregate([
+        { $match: { status: 'paid' } },
+        { $group: { _id: null, total: { $sum: "$amount" } } }
+      ]),
+      Payment.aggregate([
+        { $match: { status: 'pending' } },
+        { $group: { _id: null, total: { $sum: "$amount" } } }
+      ]),
+      Payment.aggregate([
+        { $match: { status: 'overdue' } },
+        { $group: { _id: null, total: { $sum: "$amount" } } }
+      ])
+    ]);
+
+    const thisMonth = await Payment.aggregate([
+      { 
+        $match: { 
+          status: 'paid',
+          date: { 
+            $gte: new Date(new Date().setDate(1)), 
+            $lte: new Date() 
+          }
+        }
+      },
+      { $group: { _id: null, total: { $sum: "$amount" } } }
+    ]);
+
+    const totalStudents = await Payment.distinct('studentId').length;
+
+    res.status(200).json({
+      totalCollected: totalCollected[0]?.total || 0,
+      pendingPayments: pendingPayments[0]?.total || 0,
+      thisMonth: thisMonth[0]?.total || 0,
+      overduePayments: overduePayments[0]?.total || 0,
+      totalStudents
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching payment stats", error: error.message });
   }
 });
 

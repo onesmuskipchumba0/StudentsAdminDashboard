@@ -12,6 +12,8 @@ export const CourseCard: React.FC<CourseCardProps> = ({
   course,
   onEdit,
   onDelete,
+  onUpdateProgress,
+  onEnrollStudent,
 }) => {
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -19,15 +21,15 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         return 'bg-green-100 text-green-800';
       case 'upcoming':
         return 'bg-blue-100 text-blue-800';
-      case 'completed':
-        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
   };
 
+  const isEnrollmentFull = course.enrolledStudents >= course.maxStudents;
+
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6">
+    <div className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow">
       <div className="flex justify-between items-start">
         <div>
           <h3 className="text-lg font-semibold text-gray-900">{course.name}</h3>
@@ -38,63 +40,82 @@ export const CourseCard: React.FC<CourseCardProps> = ({
         </span>
       </div>
 
-      <div className="mt-4 flex items-center gap-4 text-sm text-gray-500">
+      <div className="mt-4 grid grid-cols-2 gap-4 text-sm text-gray-500">
         <div className="flex items-center gap-1">
           <AiOutlineUser className="text-gray-400" />
-          {course.enrolledStudents} Students
+          <span>{course.enrolledStudents}/{course.maxStudents} Students</span>
         </div>
         <div className="flex items-center gap-1">
           <AiOutlineCalendar className="text-gray-400" />
-          {course.duration}
+          <span>{course.duration}</span>
         </div>
       </div>
 
-      <div className="mt-4 flex items-center gap-2">
-        <div className="flex-1">
-          <div className="text-xs text-gray-500 mb-1">Progress</div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full" 
-              style={{ width: `${course.progress}%` }}
-            ></div>
+      <div className="mt-4">
+        <div className="flex justify-between items-center mb-1">
+          <span className="text-xs text-gray-500">Progress</span>
+          <span className="text-xs font-medium">{course.progress}%</span>
+        </div>
+        <div className="w-full bg-gray-200 rounded-full h-2">
+          <div 
+            className="bg-blue-600 h-2 rounded-full transition-all duration-300" 
+            style={{ width: `${course.progress}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-gray-100">
+        <div className="flex justify-between items-center">
+          <div className="text-sm">
+            <p className="font-medium">Instructor:</p>
+            <p className="text-gray-500">{course.instructor}</p>
+          </div>
+          <div className="text-sm text-right">
+            <p className="font-medium">Start Date:</p>
+            <p className="text-gray-500">
+              {new Date(course.startDate).toLocaleDateString()}
+            </p>
           </div>
         </div>
-        <span className="text-sm text-gray-600">{course.progress}%</span>
       </div>
 
-      <div className="mt-4 pt-4 border-t border-gray-100 flex justify-between items-center">
-        <div className="flex -space-x-2">
-          {/* Sample avatars - replace with actual student avatars */}
-          {[1, 2, 3].map((i) => (
-            <img
-              key={i}
-              className="h-8 w-8 rounded-full border-2 border-white"
-              src={`https://ui-avatars.com/api/?name=Student${i}&background=random`}
-              alt=""
-            />
-          ))}
-          {course.enrolledStudents > 3 && (
-            <div className="h-8 w-8 rounded-full border-2 border-white bg-gray-100 flex items-center justify-center text-xs text-gray-500">
-              +{course.enrolledStudents - 3}
-            </div>
-          )}
-        </div>
-
+      <div className="mt-4 flex justify-between items-center">
         <div className="flex gap-2">
           <button 
-            onClick={onEdit}
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-full"
+            onClick={() => onEdit(course)}
+            className="btn btn-sm btn-ghost text-blue-600"
           >
-            <AiOutlineEdit className="h-5 w-5" />
+            <AiOutlineEdit className="h-4 w-4" />
           </button>
           <button 
-            onClick={onDelete}
-            className="p-2 text-red-600 hover:bg-red-50 rounded-full"
+            onClick={() => onDelete(course._id)}
+            className="btn btn-sm btn-ghost text-red-600"
           >
-            <AiOutlineDelete className="h-5 w-5" />
+            <AiOutlineDelete className="h-4 w-4" />
+          </button>
+        </div>
+        
+        <div className="flex gap-2">
+          {course.status === 'Active' && (
+            <button
+              onClick={() => onUpdateProgress(course._id, Math.min(course.progress + 10, 100))}
+              className="btn btn-sm btn-outline btn-primary"
+              disabled={course.progress >= 100}
+            >
+              <AiOutlineCheck className="h-4 w-4 mr-1" />
+              Update Progress
+            </button>
+          )}
+          
+          <button
+            onClick={() => onEnrollStudent(course._id)}
+            className="btn btn-sm btn-primary"
+            disabled={isEnrollmentFull || course.status !== 'Active'}
+          >
+            {isEnrollmentFull ? 'Full' : 'Enroll'}
           </button>
         </div>
       </div>
     </div>
-  )
+  );
 } 
