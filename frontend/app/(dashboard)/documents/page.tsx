@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
+import { api, APIError } from '@/lib/api';
+import { Document, DocumentStats } from '@/types/document';
 import { 
   DocumentList, 
   DocumentUpload,
@@ -29,31 +32,35 @@ export default function DocumentsPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedType, setSelectedType] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('modified');
-  const [documents, setDocuments] = useState<Document[]>([
-    {
-      id: '1',
-      name: 'Course Syllabus 2024',
-      type: 'pdf',
-      size: '2.5 MB',
-      modified: '2024-03-15',
-      owner: 'John Doe',
-      shared: true,
-      starred: true,
-      tags: ['syllabus', 'course']
-    },
-    {
-      id: '2',
-      name: 'Lecture Notes - Week 1',
-      type: 'doc',
-      size: '1.2 MB',
-      modified: '2024-03-14',
-      owner: 'John Doe',
-      shared: false,
-      starred: false,
-      tags: ['lectures', 'notes']
-    },
-    // Add more dummy documents...
-  ]);
+  const [documents, setDocuments] = useState<Document[]>([]);
+  const [stats, setStats] = useState<DocumentStats | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const [documents, stats] = await Promise.all([
+        api.getDocuments(),
+        api.getDocumentStats()
+      ]);
+
+      setDocuments(documents);
+      setStats(stats);
+    } catch (err) {
+      const message = err instanceof APIError ? err.message : 'Failed to fetch documents';
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -69,6 +76,19 @@ export default function DocumentsPage() {
 
   const handleSort = (sortKey: string) => {
     setSortBy(sortKey);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this document?')) return;
+
+    try {
+      await api.deleteDocument(id);
+      toast.success('Document deleted successfully');
+      fetchData();
+    } catch (err) {
+      const message = err instanceof APIError ? err.message : 'Failed to delete document';
+      toast.error(message);
+    }
   };
 
   const filteredDocuments = documents
@@ -150,6 +170,7 @@ export default function DocumentsPage() {
                     doc.id === updatedDoc.id ? updatedDoc : doc
                   ));
                 }}
+                onDelete={handleDelete}
               />
             ) : (
               <DocumentList 
@@ -159,6 +180,7 @@ export default function DocumentsPage() {
                     doc.id === updatedDoc.id ? updatedDoc : doc
                   ));
                 }}
+                onDelete={handleDelete}
               />
             )}
           </div>

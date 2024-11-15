@@ -1,39 +1,71 @@
+'use client';
+
 import { useState } from 'react';
-import { Document } from '@/app/(dashboard)/documents/page';
-import { FaUpload } from 'react-icons/fa';
+import { api, APIError } from '@/lib/api';
+import { Document } from '@/types/document';
+import { toast } from 'react-hot-toast';
+import { FaUpload, FaTimes } from 'react-icons/fa';
 
 interface DocumentUploadProps {
   isOpen: boolean;
   onClose: () => void;
-  onUpload: (document: Document) => void;
+  onSuccess: (document: Document) => void;
 }
 
-export function DocumentUpload({ isOpen, onClose, onUpload }: DocumentUploadProps) {
-  const [files, setFiles] = useState<FileList | null>(null);
+export function DocumentUpload({ isOpen, onClose, onSuccess }: DocumentUploadProps) {
+  const [file, setFile] = useState<File | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [newTag, setNewTag] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (files && files.length > 0) {
-      const file = files[0];
-      const newDoc: Document = {
-        id: Math.random().toString(36).substr(2, 9),
-        name: file.name,
-        type: file.name.split('.').pop() || 'unknown',
-        size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-        modified: new Date().toISOString(),
-        owner: 'Current User',
-        shared: false,
-        starred: false,
-        tags: tags
-      };
+    if (!file) {
+      setError('Please select a file');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('tags', JSON.stringify(tags));
+
+      const document = await api.uploadDocument(formData);
+      onSuccess(document);
+      toast.success('Document uploaded successfully');
+      resetForm();
+      onClose();
+    } catch (err) {
+      const message = err instanceof APIError ? err.message : 'Failed to upload document';
+      setError(message);
+      toast.error(message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      // Check file size (10MB limit)
+      if (selectedFile.size > 10 * 1024 * 1024) {
+        setError('File size must be less than 10MB');
+        return;
+      }
       
-      onUpload(newDoc);
-      setFiles(null);
-      setTags([]);
-      setNewTag('');
+      // Check file type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'image/jpeg', 'image/png'];
+      if (!allowedTypes.includes(selectedFile.type)) {
+        setError('Invalid file type. Please upload PDF, DOC, DOCX, JPG or PNG files.');
+        return;
+      }
+
+      setFile(selectedFile);
+      setError(null);
     }
   };
 
@@ -49,6 +81,13 @@ export function DocumentUpload({ isOpen, onClose, onUpload }: DocumentUploadProp
 
   const handleRemoveTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const resetForm = () => {
+    setFile(null);
+    setTags([]);
+    setNewTag('');
+    setError(null);
   };
 
   if (!isOpen) return null;
@@ -67,9 +106,27 @@ export function DocumentUpload({ isOpen, onClose, onUpload }: DocumentUploadProp
               <input
                 type="file"
                 className="file-input file-input-bordered w-full"
-                onChange={(e) => setFiles(e.target.files)}
+                onChange={handleFileChange}
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
                 required
               />
+              {file && (
+                <div className="mt-2 flex items-center justify-between bg-base-200 p-2 rounded">
+                  <span className="text-sm truncate">{file.name}</span>
+                  <button
+                    type="button"
+                    className="btn btn-ghost btn-xs"
+                    onClick={() => setFile(null)}
+                  >
+                    <FaTimes />
+                  </button>
+                </div>
+              )}
+              {error && (
+                <label className="label">
+                  <span className="label-text-alt text-error">{error}</span>
+                </label>
+              )}
             </div>
 
             <div className="form-control">
@@ -99,12 +156,33 @@ export function DocumentUpload({ isOpen, onClose, onUpload }: DocumentUploadProp
             </div>
 
             <div className="modal-action">
-              <button type="button" className="btn" onClick={onClose}>
+              <button 
+                type="button" 
+                className="btn" 
+                onClick={() => {
+                  resetForm();
+                  onClose();
+                }}
+                disabled={loading}
+              >
                 Cancel
               </button>
-              <button type="submit" className="btn btn-primary">
-                <FaUpload className="mr-2" />
-                Upload
+              <button 
+                type="submit" 
+                className="btn btn-primary"
+                disabled={loading || !file}
+              >
+                {loading ? (
+                  <>
+                    <span className="loading loading-spinner loading-sm mr-2"></span>
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <FaUpload className="mr-2" />
+                    Upload
+                  </>
+                )}
               </button>
             </div>
           </div>

@@ -24,7 +24,7 @@ const dummyDepartments: Department[] = [
   // ... other departments
 ];
 
-export function DepartmentList() {
+export function DepartmentList({ departments, onEdit, onDelete }: DepartmentListProps) {
   return (
     <div className="overflow-x-auto bg-base-100 rounded-lg shadow">
       <table className="table">
@@ -39,8 +39,8 @@ export function DepartmentList() {
           </tr>
         </thead>
         <tbody>
-          {dummyDepartments.map((department) => (
-            <tr key={department.id} className="hover">
+          {departments.map((department) => (
+            <tr key={department._id} className="hover">
               <td className="font-medium">{department.name}</td>
               <td className="max-w-md truncate">{department.description}</td>
               <td>
@@ -56,10 +56,16 @@ export function DepartmentList() {
               <td>{new Date(department.createdAt).toLocaleDateString()}</td>
               <td>
                 <div className="flex gap-2">
-                  <button className="btn btn-square btn-sm btn-ghost">
+                  <button 
+                    onClick={() => onEdit(department)}
+                    className="btn btn-square btn-sm btn-ghost"
+                  >
                     <FaEdit className="text-blue-500" />
                   </button>
-                  <button className="btn btn-square btn-sm btn-ghost">
+                  <button 
+                    onClick={() => onDelete(department._id)}
+                    className="btn btn-square btn-sm btn-ghost"
+                  >
                     <FaTrash className="text-red-500" />
                   </button>
                 </div>

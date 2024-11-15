@@ -1,49 +1,44 @@
-import { Document } from '@/app/(dashboard)/documents/page';
-import { 
-  FaFilePdf, 
-  FaFileWord, 
-  FaFileExcel, 
-  FaFilePowerpoint, 
-  FaFileImage,
-  FaStar,
-  FaShare,
-  FaEllipsisV
-} from 'react-icons/fa';
+'use client';
+
+import { useState } from 'react';
+import { api, APIError } from '@/lib/api';
+import { Document } from '@/types/document';
+import { toast } from 'react-hot-toast';
 
 interface DocumentListProps {
   documents: Document[];
   onUpdate: (document: Document) => void;
+  onDelete: (id: string) => void;
 }
 
-export function DocumentList({ documents, onUpdate }: DocumentListProps) {
-  const getFileIcon = (type: string) => {
-    switch (type) {
-      case 'pdf':
-        return <FaFilePdf className="text-red-500" />;
-      case 'doc':
-        return <FaFileWord className="text-blue-500" />;
-      case 'xls':
-        return <FaFileExcel className="text-green-500" />;
-      case 'ppt':
-        return <FaFilePowerpoint className="text-orange-500" />;
-      case 'img':
-        return <FaFileImage className="text-purple-500" />;
-      default:
-        return <FaFilePdf className="text-gray-500" />;
+export function DocumentList({ documents, onUpdate, onDelete }: DocumentListProps) {
+  const [loading, setLoading] = useState<string | null>(null);
+
+  const handleToggleStar = async (document: Document) => {
+    try {
+      const updatedDoc = await api.toggleStar(document._id);
+      onUpdate(updatedDoc);
+      toast.success(updatedDoc.starred ? 'Document starred' : 'Document unstarred');
+    } catch (err) {
+      const message = err instanceof APIError ? err.message : 'Failed to update document';
+      toast.error(message);
     }
   };
 
-  const handleStarDocument = (doc: Document) => {
-    onUpdate({ ...doc, starred: !doc.starred });
-  };
-
-  const handleShareDocument = (doc: Document) => {
-    onUpdate({ ...doc, shared: !doc.shared });
+  const handleToggleShare = async (document: Document) => {
+    try {
+      const updatedDoc = await api.toggleShare(document._id);
+      onUpdate(updatedDoc);
+      toast.success(updatedDoc.shared ? 'Document shared' : 'Document unshared');
+    } catch (err) {
+      const message = err instanceof APIError ? err.message : 'Failed to update document';
+      toast.error(message);
+    }
   };
 
   return (
-    <div className="overflow-x-auto">
-      <table className="table">
+    <div className="overflow-x-auto bg-base-100 rounded-lg shadow">
+      <table className="table w-full">
         <thead>
           <tr>
             <th>Name</th>
@@ -51,52 +46,53 @@ export function DocumentList({ documents, onUpdate }: DocumentListProps) {
             <th>Size</th>
             <th>Modified</th>
             <th>Owner</th>
-            <th>Tags</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {documents.map((doc) => (
-            <tr key={doc.id} className="hover">
+            <tr key={doc._id} className="hover">
               <td className="flex items-center gap-2">
                 {getFileIcon(doc.type)}
                 <span>{doc.name}</span>
                 <div className="flex items-center gap-1">
-                  {doc.starred && <FaStar className="text-yellow-500" />}
-                  {doc.shared && <FaShare className="text-blue-500" />}
+                  <button 
+                    onClick={() => handleToggleStar(doc)}
+                    className={`btn btn-ghost btn-xs ${doc.starred ? 'text-yellow-500' : ''}`}
+                  >
+                    <FaStar />
+                  </button>
+                  <button 
+                    onClick={() => handleToggleShare(doc)}
+                    className={`btn btn-ghost btn-xs ${doc.shared ? 'text-blue-500' : ''}`}
+                  >
+                    <FaShare />
+                  </button>
                 </div>
               </td>
               <td className="uppercase">{doc.type}</td>
               <td>{doc.size}</td>
-              <td>{new Date(doc.modified).toLocaleDateString()}</td>
+              <td>{new Date(doc.updatedAt).toLocaleDateString()}</td>
               <td>{doc.owner}</td>
               <td>
-                <div className="flex flex-wrap gap-1">
-                  {doc.tags.map((tag) => (
-                    <span key={tag} className="badge badge-sm">{tag}</span>
-                  ))}
-                </div>
-              </td>
-              <td>
-                <div className="dropdown dropdown-end">
-                  <label tabIndex={0} className="btn btn-ghost btn-sm btn-circle">
-                    <FaEllipsisV />
-                  </label>
-                  <ul tabIndex={0} className="dropdown-content menu p-2 shadow bg-base-100 rounded-box w-52">
-                    <li>
-                      <button onClick={() => handleStarDocument(doc)}>
-                        {doc.starred ? 'Unstar' : 'Star'}
-                      </button>
-                    </li>
-                    <li>
-                      <button onClick={() => handleShareDocument(doc)}>
-                        {doc.shared ? 'Unshare' : 'Share'}
-                      </button>
-                    </li>
-                    <li><button>Download</button></li>
-                    <li><button>Rename</button></li>
-                    <li><button className="text-error">Delete</button></li>
-                  </ul>
+                <div className="flex gap-2">
+                  <button
+                    className="btn btn-ghost btn-xs"
+                    onClick={() => handleDownload(doc)}
+                    disabled={loading === doc._id}
+                  >
+                    {loading === doc._id ? (
+                      <span className="loading loading-spinner loading-xs" />
+                    ) : (
+                      <FaDownload />
+                    )}
+                  </button>
+                  <button
+                    className="btn btn-ghost btn-xs text-error"
+                    onClick={() => onDelete(doc._id)}
+                  >
+                    <FaTrash />
+                  </button>
                 </div>
               </td>
             </tr>
